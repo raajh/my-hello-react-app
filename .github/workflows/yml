@@ -1,0 +1,34 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - main  # Change this to your branch name
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0.2.0
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          project_id: your-project-id  # Replace with your Google Cloud Project ID
+
+      - name: Build and push Docker image
+        run: |
+          docker build -t gcr.io/ds-ms-microservices/rcganshekar/hello-world:latest .
+          docker push gcr.io/ds-ms-microservices/rcganshekar/hello-world:latest
+
+      - name: Deploy to Cloud Run
+        run: |
+        gcloud run deploy my-react-app\
+  --image gcr.io/ds-ms-microservices/rcganshekar/hello-world@sha256:1da656c5e0c90e8fb98ab82264572825827697452890b3a39e0f2a6932144ee3 \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated
+
