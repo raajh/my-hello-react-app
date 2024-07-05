@@ -1,4 +1,4 @@
-name: Deploy to Cloud Run
+name: Build and Deploy to Cloud Run
 
 on:
   push:
@@ -18,21 +18,25 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          export_default_credentials: true
+          service_account_key: ${{ secrets.GCP_SA_KEY_BASE64 }}  # This should be base64-encoded content of your key file
 
-      - name: Authenticate Docker with Google Cloud
+      - name: Decode service account key
         run: |
-          gcloud auth configure-docker
+          echo "${{ secrets.GCP_SA_KEY_BASE64 }}" | base64 --decode > key.json
+          gcloud auth activate-service-account --key-file=key.json
+          gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
 
-      - name: Build and push Docker image
+      - name: Login to Docker Hub
+        run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image to Docker Hub
         run: |
-           docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/rcganshekar/hello-world:latest .
-           docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/rcganshekar/hello-world:latest
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/hello-world:latest .
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/hello-world:latest
 
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy my-react-app \
-            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world:latest \
+            --image docker.io/${{ secrets.DOCKERHUB_USERNAME }}/hello-world:latest \
             --region us-central1 \
             --platform managed
