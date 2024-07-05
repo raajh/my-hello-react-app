@@ -3,7 +3,7 @@ name: Deploy to Cloud Run
 on:
   push:
     branches:
-      - main  # Change this to your branch name if different
+      - master
 
 jobs:
   deploy:
