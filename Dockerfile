@@ -1,30 +1,24 @@
-# Stage 1: Build the React app
-FROM node:14-alpine as build
+# Use the official Node.js image
+FROM node:14
 
-# Set the working directory
-WORKDIR /app
+# Create app directory
+WORKDIR /usr/src/app
 
-# Copy the package.json and install dependencies
+# Install app dependencies
 COPY package*.json ./
 RUN npm install
 
-# Copy the rest of the application code
+# Bundle app source
 COPY . .
 
 # Build the app
 RUN npm run build
 
-# Stage 2: Serve the app with an nginx server
-FROM nginx:alpine
+# Install serve
+RUN npm install -g serve
 
-# Copy the build output to replace the default nginx contents.
-COPY --from=build /app/build /usr/share/nginx/html
+# Serve the app
+CMD ["serve", "-s", "build"]
 
-# Expose port 8080
-EXPOSE 8080
-
-# Update the Nginx configuration to listen on port 8080
-RUN sed -i 's/listen\s*80;/listen 8080;/' /etc/nginx/conf.d/default.conf
-
-# Start nginx server
-CMD ["nginx", "-g", "daemon off;"]
+# Expose the port
+EXPOSE 5000
