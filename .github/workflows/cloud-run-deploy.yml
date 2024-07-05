@@ -18,8 +18,13 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          export_default_credentials: true
+          service_account_key: ${{ secrets.GCP_SA_KEY_BASE64 }}  # This should be base64-encoded content of your key file
+
+      - name: Decode service account key
+        run: |
+          echo "${{ secrets.GCP_SA_KEY_BASE64 }}" | base64 --decode > key.json
+          gcloud auth activate-service-account --key-file=key.json
+          gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
 
       - name: Login to Docker Hub
         run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
