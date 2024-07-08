@@ -18,28 +18,25 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SA_KEY_BASE64 }}
+          service_account_key: ${{ secrets.GCP_SA_KEY_BASE64 }}  # This should be base64-encoded content of your key file
 
-      - name:  List files inC:\Users\Orcon\key
+      - name: Decode service account key
         run: |
-          dir C:\Users\Orcon\key
+          echo "${{ secrets.GCP_SA_KEY_BASE64 }}" | base64 --decode > key.json
+          gcloud auth activate-service-account --key-file=key.json
+          gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
 
-      - name:  Print contents of service account key file
-        run: |
-          cat C:\\Users\\Orcon\\key\\ds-ms-microservices-c7375fc4c6b5.json  # Use double backslashes for file path in YAML
+      - name: Login to Docker Hub
+        run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Authenticate with gcloud using local service account key
+      - name: Build and push Docker image to Docker Hub
         run: |
-          gcloud auth activate-service-account --key-file=C:\\key\\ds-ms-microservices-c7375fc4c6b5.json
-
-      - name: Build and push Docker image to Container Registry
-        run: |
-          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world:latest .
-          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world:latest
+          docker build --no-cache -t ${{ secrets.DOCKERHUB_USERNAME }}/hello-world:latest .
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/hello-world:latest
 
       - name: Deploy to Cloud Run
         run: |
-          gcloud run deploy hello-world \
-            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world:latest \
-            --platform managed \
-            --region us-central1
+          gcloud run deploy hello-world\
+            --image docker.io/${{ secrets.DOCKERHUB_USERNAME }}/hello-world:latest \
+            --region us-central1 \
+            --platform managed
