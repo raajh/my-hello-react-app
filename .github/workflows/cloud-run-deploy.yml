@@ -31,7 +31,7 @@ jobs:
 
       - name: Build and push Docker image to Docker Hub
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/hello-world:latest .
+          docker build --no-cache -t ${{ secrets.DOCKERHUB_USERNAME }}/hello-world:latest .
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/hello-world:latest
 
       - name: Deploy to Cloud Run
