@@ -18,7 +18,7 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SA_KEY_BASE64 }}  # This should be base64-encoded content of your key file
+          service_account_key: ${{ secrets.GCP_SA_KEY_BASE64 }}  # Base64-encoded content of your key file
 
       - name: Decode service account key
         run: |
@@ -31,7 +31,7 @@ jobs:
 
       - name: Build and push Docker image to Docker Hub
         run: |
-          docker build --no-cache -t ${{ secrets.DOCKERHUB_USERNAME }}/hello-world:latest .
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/hello-world:latest .
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/hello-world:latest
 
       - name: Deploy to Cloud Run
@@ -39,4 +39,6 @@ jobs:
           gcloud run deploy my-react-app \
             --image docker.io/${{ secrets.DOCKERHUB_USERNAME }}/hello-world:latest \
             --region us-central1 \
-            --platform managed
+            --platform managed \
+            --allow-unauthenticated  # Add this if your service is public and does not require authentication
+
