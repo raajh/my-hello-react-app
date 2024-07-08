@@ -3,7 +3,7 @@ name: Build and Deploy to Cloud Run
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   build-and-deploy:
@@ -20,10 +20,11 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key: ${{ secrets.GCP_SA_KEY_BASE64 }}
 
-      - name: Configure Docker CLI and authenticate with gcloud
+     
+
+      - name: Authenticate with gcloud using local service account key
         run: |
-          echo ${{ secrets.GCR_SERVICE_ACCOUNT_KEY }} | base64 --decode > C:\Keys\ds-ms-microservices-c7375fc4c6b5.json
-          gcloud auth activate-service-account --key-file=C:\Keys\ds-ms-microservices-c7375fc4c6b5.json
+          gcloud auth activate-service-account --key-file=C:\\Keys\\ds-ms-microservices-c7375fc4c6b5.json
 
       - name: Build and push Docker image to Container Registry
         run: |
