@@ -22,3 +22,8 @@ CMD ["serve", "-s", "build"]
 
 # Expose the port
 EXPOSE 5000
+
+
+
+
+
