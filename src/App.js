@@ -4,7 +4,7 @@ function App() {
   return (
     <div>
       <h1>Hello, World,its friday and weekend and holiday and bye,Hello...
-        I'm Ganshekar  and raajh
+        I'm Ganshekar  raajh and its monday
 
       </h1>
     </div>
