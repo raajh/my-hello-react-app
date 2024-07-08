@@ -3,7 +3,7 @@ name: Build and Deploy to Cloud Run
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   build-and-deploy:
@@ -20,7 +20,9 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key: ${{ secrets.GCP_SA_KEY_BASE64 }}
 
-     
+      - name:  Print contents of service account key file
+        run: |
+          cat C:\\Keys\\ds-ms-microservices-c7375fc4c6b5.json  # Use double backslashes for file path in YAML
 
       - name: Authenticate with gcloud using local service account key
         run: |
