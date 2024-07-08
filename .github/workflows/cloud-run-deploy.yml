@@ -32,9 +32,6 @@ jobs:
       - name: Build Docker image
         run: |
           docker build -t hello-world:latest .
-      
-      - name: Tag Docker image
-        run: |
           docker tag hello-world:latest ganshekar/hello-world:latest
 
       - name: Push Docker image to Docker Hub
@@ -47,4 +44,4 @@ jobs:
             --image docker.io/ganshekar/hello-world:latest \
             --region us-central1 \
             --platform managed \
-            --allow-unauthenticated  # Modify as per your authentication needs
+            --allow-unauthenticated
