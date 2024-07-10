@@ -18,18 +18,18 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          service_account_key: ${{ secrets.GCP_SA_KEY_BASE64 }}
 
       - name: Authenticate Docker to Google Cloud
         run: |
-          echo "${{ secrets.GCP_SA_KEY }}" | base64 --decode > key.json
+          echo "${{ secrets.GCP_SA_KEY_BASE64 }}" | base64 --decode > key.json
           gcloud auth activate-service-account --key-file=key.json
           gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
           gcloud auth configure-docker
 
       - name: Login to Docker Hub
         run: |
-          echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+          echo ${{ secrets.DOCKER_PASSWORD }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
       - name: Get current timestamp
         id: get-timestamp
