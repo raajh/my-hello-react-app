@@ -1,4 +1,4 @@
-name: Build, Push to Docker Hub, and Deploy to Cloud Run
+name: Build and Deploy
 
 on:
   push:
@@ -6,39 +6,33 @@ on:
       - master
 
 jobs:
-  build-push-and-deploy:
-    name: Build, Push to Docker Hub, and Deploy to Cloud Run
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Configure Docker credentials
-        run: |
-          echo '{"auths":{"https://index.docker.io/v1/":{"auth":"$(echo -n ${{ secrets.DOCKER_USERNAME }}:${{ secrets.DOCKER_PASSWORD }} | base64)"}}}' > /tmp/config.json
-          mkdir -p ~/.docker
-          mv /tmp/config.json ~/.docker/config.json
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
 
       - name: Build and Push Docker image
         env:
-          IMAGE_TAG: latest  # Replace with your desired image tag
+          IMAGE_TAG: latest
         run: |
           docker build -t ganshekar/hello-world:${IMAGE_TAG} .
           docker push ganshekar/hello-world:${IMAGE_TAG}
-
-      - name: Set up Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v1
-        with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SA_KEY_BASE64 }}
-
+      
+      - name: Rename Docker config file
+        run: mv ~/.docker/config.json ~/.docker/config.json.old
+      
       - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@main
+        with:
+          service: hello-world-service  # Replace with your Cloud Run service name
+          image: gcr.io/my-project/hello-world:${IMAGE_TAG}  # Replace with your image reference
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          region: us-central1
+          args: --port=8080  # Adjust port if necessary
         env:
-          IMAGE_TAG: latest  # Use the same IMAGE_TAG as pushed to Docker Hub
-        run: |
-          gcloud run deploy hello-world \
-            --image ganshekar/hello-world:${IMAGE_TAG} \
-            --region us-central1 \
-            --platform managed \
-            --allow-unauthenticated
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
