@@ -1,4 +1,4 @@
-name: Build and Deploy to Cloud Run
+name: Build, Push to Docker Hub, and Deploy to Cloud Run
 
 on:
   push:
@@ -6,13 +6,26 @@ on:
       - master
 
 jobs:
-  build-and-deploy:
-    name: Build and Deploy to Cloud Run
+  build-push-and-deploy:
+    name: Build, Push to Docker Hub, and Deploy to Cloud Run
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
+      - name: Configure Docker credentials
+        run: |
+          echo '{"auths":{"https://index.docker.io/v1/":{"auth":"$(echo -n ${{ secrets.DOCKER_USERNAME }}:${{ secrets.DOCKER_PASSWORD }} | base64)"}}}' > /tmp/config.json
+          mkdir -p ~/.docker
+          mv /tmp/config.json ~/.docker/config.json
+
+      - name: Build and Push Docker image
+        env:
+          IMAGE_TAG: latest  # Replace with your desired image tag
+        run: |
+          docker build -t ganshekar/hello-world:${IMAGE_TAG} .
+          docker push ganshekar/hello-world:${IMAGE_TAG}
 
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
@@ -20,39 +33,9 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key: ${{ secrets.GCP_SA_KEY_BASE64 }}
 
-      - name: Authenticate Docker to Google Cloud
-        run: |
-          echo "${{ secrets.GCP_SA_KEY_BASE64 }}" | base64 --decode > key.json
-          gcloud auth activate-service-account --key-file=key.json
-          gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
-          gcloud auth configure-docker
-
-      - name: Login to Docker Hub
-        run: |
-          echo ${{ secrets.DOCKER_PASSWORD }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
-
-      - name: Get current timestamp
-        id: get-timestamp
-        run: echo "TIMESTAMP=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
-
-      - name: Build Docker image
-        env:
-          GIT_SHA: ${{ github.sha }}
-          TIMESTAMP: ${{ env.TIMESTAMP }}
-        run: |
-          IMAGE_TAG=${GIT_SHA::7}-${TIMESTAMP}
-          docker build -t ganshekar/hello-world:${IMAGE_TAG} .
-          echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
-
-      - name: Push Docker image to Docker Hub
-        env:
-          IMAGE_TAG: ${{ env.IMAGE_TAG }}
-        run: |
-          docker push ganshekar/hello-world:${IMAGE_TAG}
-
       - name: Deploy to Cloud Run
         env:
-          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+          IMAGE_TAG: latest  # Use the same IMAGE_TAG as pushed to Docker Hub
         run: |
           gcloud run deploy hello-world \
             --image ganshekar/hello-world:${IMAGE_TAG} \
