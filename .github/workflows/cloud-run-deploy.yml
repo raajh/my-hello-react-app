@@ -42,4 +42,4 @@ jobs:
             --image=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/hello-world:${IMAGE_TAG} \
             --region=us-central1 \
             --platform=managed \
-            --allow-unauthenticated  # Add this if your service doesn't require authentication
+            --allow-unauthenticated
