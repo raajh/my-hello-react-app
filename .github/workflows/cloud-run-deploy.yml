@@ -40,8 +40,8 @@ jobs:
 
       - name: Deploy to Cloud Run
         run: |
-          gcloud run deploy hello-world \
-            --image docker.io/${{ secrets.DOCKERHUB_USERNAME }}/hello-world:${IMAGE_TAG} \
-            --region us-central1 \
-            --platform managed \
+            gcloud run deploy hello-world\
+            --image=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/hello-world:latest \
+            --region=us-central1 \
+            --platform=managed \
             --allow-unauthenticated
