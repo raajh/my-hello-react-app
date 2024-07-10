@@ -29,8 +29,8 @@ jobs:
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@main
         with:
-          service: hello-world-service  # Replace with your Cloud Run service name
-          image: gcr.io/my-project/hello-world:${IMAGE_TAG}  # Replace with your image reference
+          service: hello-world  # Replace with your Cloud Run service name
+          image: gcr.io/ds-ms-microservices/hello-world:${IMAGE_TAG}  # Replace with your image reference
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           region: us-central1
           args: --port=8080  # Adjust port if necessary
